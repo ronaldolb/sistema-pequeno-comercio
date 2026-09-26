@@ -13,6 +13,11 @@ export class PdvController {
     return this.pdvService.listarProdutosParaPdv();
   }
 
+  @Get('caixa-status')
+  statusCaixa() {
+    return this.pdvService.statusCaixa();
+  }
+
   @Post('venda')
   criarVenda(@Body() dto: CriarVendaDto, @Req() req: any) {
     return this.pdvService.criarVenda(dto, req.user?.id);

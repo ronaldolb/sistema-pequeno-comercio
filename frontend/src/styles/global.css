@@ -750,3 +750,23 @@ textarea:focus {
   border-left-color: #d97706 !important;
   color: #92400e;
 }
+
+/* Aviso de caixa fechado no PDV */
+.pdv-aviso-caixa {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-left: 4px solid #dc2626;
+  border-radius: 8px;
+  color: #991b1b;
+}
+.pdv-aviso-caixa-link {
+  white-space: nowrap;
+  font-weight: 600;
+  color: #991b1b;
+}

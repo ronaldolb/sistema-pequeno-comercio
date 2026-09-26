@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { listarProdutosPdv, criarVenda } from '../services/pdvService';
+import { Link } from 'react-router-dom';
+import { listarProdutosPdv, criarVenda, statusCaixaPdv } from '../services/pdvService';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { mensagemErro } from '../utils/erro';
 
@@ -37,6 +39,10 @@ type ItemCarrinho = {
 // a quantidade é digitada na hora (em vez de assumir um valor fixo).
 export const PDV: React.FC = () => {
   const { sucesso, erro } = useToast();
+  const { usuario } = useAuth();
+  const podeAbrirCaixa = usuario?.papel === 'dono' || usuario?.papel === 'gerente';
+  // null = ainda verificando; true/false = resposta do back-end
+  const [caixaAberto, setCaixaAberto] = useState<boolean | null>(null);
   const [categorias, setCategorias] = useState<string[]>([]);
   const [categoriaSelecionada, setCategoriaSelecionada] = useState<string>('');
   const [produtos, setProdutos] = useState<Produto[]>([]);
@@ -47,6 +53,20 @@ export const PDV: React.FC = () => {
   const [quantidadeInformada, setQuantidadeInformada] = useState<string>('');
   const [finalizando, setFinalizando] = useState(false);
   const buscaRef = useRef<HTMLInputElement>(null);
+
+  const verificarCaixa = () => {
+    statusCaixaPdv()
+      .then((res) => setCaixaAberto(res.aberto))
+      .catch(() => setCaixaAberto(null));
+  };
+
+  // Verifica ao abrir a tela e sempre que a janela volta ao foco
+  // (ex.: o caixa foi aberto no Financeiro em outra aba).
+  useEffect(() => {
+    verificarCaixa();
+    window.addEventListener('focus', verificarCaixa);
+    return () => window.removeEventListener('focus', verificarCaixa);
+  }, []);
 
   useEffect(() => {
     listarProdutosPdv().then((res) => {
@@ -160,7 +180,7 @@ export const PDV: React.FC = () => {
   };
 
   const finalizarVenda = async (formaPagamento: string) => {
-    if (carrinho.length === 0 || finalizando) return;
+    if (carrinho.length === 0 || finalizando || caixaAberto === false) return;
     setFinalizando(true);
     try {
       await criarVenda({
@@ -180,6 +200,7 @@ export const PDV: React.FC = () => {
       focarBusca();
     } catch (err) {
       erro(mensagemErro(err, 'Não foi possível concluir a venda. Tente novamente.'));
+      verificarCaixa();
     } finally {
       setFinalizando(false);
     }
@@ -199,6 +220,22 @@ export const PDV: React.FC = () => {
       <header className="pdv-header">
         <h1>PDV</h1>
       </header>
+
+      {caixaAberto === false && (
+        <div className="pdv-aviso-caixa" role="alert">
+          <span>
+            <strong>Caixa fechado.</strong>{' '}
+            {podeAbrirCaixa
+              ? 'Abra o caixa para registrar vendas.'
+              : 'Peça ao dono ou gerente para abrir o caixa antes de registrar vendas.'}
+          </span>
+          {podeAbrirCaixa && (
+            <Link to="/financeiro" className="pdv-aviso-caixa-link">
+              Abrir caixa →
+            </Link>
+          )}
+        </div>
+      )}
 
       <div className="pdv-toolbar">
         <input
@@ -278,13 +315,13 @@ export const PDV: React.FC = () => {
           <div className="carrinho-total">Total: {formatarMoeda(total)}</div>
           {finalizando && <p className="pdv-processando">Processando venda...</p>}
           <div className="pdv-pagamento">
-            <button onClick={() => finalizarVenda('DINHEIRO')} disabled={carrinho.length === 0 || finalizando}>
+            <button onClick={() => finalizarVenda('DINHEIRO')} disabled={carrinho.length === 0 || finalizando || caixaAberto === false}>
               Dinheiro
             </button>
-            <button onClick={() => finalizarVenda('CARTAO')} disabled={carrinho.length === 0 || finalizando}>
+            <button onClick={() => finalizarVenda('CARTAO')} disabled={carrinho.length === 0 || finalizando || caixaAberto === false}>
               Cartão
             </button>
-            <button onClick={() => finalizarVenda('PIX')} disabled={carrinho.length === 0 || finalizando}>
+            <button onClick={() => finalizarVenda('PIX')} disabled={carrinho.length === 0 || finalizando || caixaAberto === false}>
               Pix
             </button>
           </div>

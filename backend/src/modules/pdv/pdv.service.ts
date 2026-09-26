@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { Produto } from '../produtos/produto.entity';
@@ -25,12 +25,27 @@ export class PdvService {
     });
   }
 
+  /** Status do caixa para o PDV (qualquer usuário logado, inclusive o papel "caixa"). */
+  async statusCaixa(): Promise<{ aberto: boolean }> {
+    const { aberto } = await this.financeiroService.statusCaixa();
+    return { aberto };
+  }
+
   /**
    * Fecha uma venda do PDV: grava a venda + itens (em transação), depois baixa o estoque de
    * cada produto (via EstoqueService, que também grava o histórico de movimentação) e lança
    * a entrada correspondente no caixa.
    */
   async criarVenda(dto: CriarVendaDto, usuarioId?: number): Promise<Venda> {
+    // Regra de frente de caixa: toda venda precisa cair dentro de um caixa aberto,
+    // senão o fechamento do dia não bate com o que foi vendido.
+    const { aberto } = await this.financeiroService.statusCaixa();
+    if (!aberto) {
+      throw new BadRequestException(
+        'O caixa está fechado. Abra o caixa no Financeiro antes de registrar vendas.',
+      );
+    }
+
     const venda = await this.dataSource.transaction(async (manager) => {
       const vendaRepo = manager.getRepository(Venda);
       const itemRepo = manager.getRepository(VendaItem);
