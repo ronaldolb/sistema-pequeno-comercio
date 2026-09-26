@@ -1,7 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 
-// Genérico o suficiente para qualquer pequeno comércio (mercearia, loja, papelaria, padaria etc.):
-// produtos vendidos por unidade ('un') ou por peso/medida ('kg', 'lt', 'm').
 @Entity('produtos')
 export class Produto {
   @PrimaryGeneratedColumn()
@@ -14,7 +12,7 @@ export class Produto {
   categoria: string;
 
   @Column()
-  unidade: string; // 'un', 'kg', 'lt', 'm' ...
+  unidade: string;
 
   @Column('decimal', { precision: 10, scale: 2 })
   preco: number;
@@ -36,4 +34,10 @@ export class Produto {
 
   @Column({ type: 'text', nullable: true })
   observacoes: string;
+
+  @Column({ type: 'date', nullable: true })
+  data_validade: string | null;
+
+  @Column({ type: 'int', default: 30 })
+  dias_alerta_vencimento: number;
 }

@@ -55,3 +55,30 @@ export async function registrarMovimentoCaixa(payload: {
   const { data } = await api.post('/financeiro/caixa/movimentos', payload);
   return data;
 }
+
+export async function statusCaixa(): Promise<{ aberto: boolean; abertura?: MovimentoCaixa }> {
+  const res = await api.get('/financeiro/caixa/status');
+  return res.data;
+}
+
+export async function abrirCaixa(fundo_caixa: number, observacao?: string): Promise<MovimentoCaixa> {
+  const res = await api.post('/financeiro/caixa/abrir', { fundo_caixa, observacao });
+  return res.data;
+}
+
+export async function fecharCaixa(observacao?: string): Promise<{
+  fechamento: MovimentoCaixa;
+  resumo: {
+    fundo_caixa: number;
+    total_vendas: number;
+    total_dinheiro: number;
+    total_cartao: number;
+    total_pix: number;
+    total_sangrias: number;
+    total_suprimentos: number;
+    saldo_final: number;
+  };
+}> {
+  const res = await api.post('/financeiro/caixa/fechar', { observacao });
+  return res.data;
+}

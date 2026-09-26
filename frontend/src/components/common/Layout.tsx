@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 const itensMenu = [
   { to: '/', label: 'Início', papeis: null },
   { to: '/pdv', label: 'PDV', papeis: null },
+  { to: '/consulta', label: 'Consulta de preços', papeis: null },
   { to: '/produtos', label: 'Produtos', papeis: null },
   { to: '/estoque', label: 'Estoque', papeis: ['dono', 'gerente'] },
   { to: '/financeiro', label: 'Financeiro', papeis: ['dono', 'gerente'] },

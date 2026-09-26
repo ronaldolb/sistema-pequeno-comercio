@@ -652,3 +652,101 @@ textarea:focus {
   border-radius: var(--radius-sm);
   font-size: 1rem;
 }
+
+/* Status do caixa */
+.status-caixa {
+  display: inline-block;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+.status-caixa.aberto  { background: #d1fae5; color: #065f46; }
+.status-caixa.fechado { background: #fee2e2; color: #991b1b; }
+
+/* Abas */
+.abas { display: flex; gap: 8px; margin-bottom: 1.5rem; }
+.abas button { padding: 8px 20px; border: 2px solid #d1d5db; border-radius: 8px; background: white; cursor: pointer; }
+.abas button.ativo { border-color: #2563eb; color: #2563eb; font-weight: 600; }
+
+/* Resumo fechamento */
+.resumo-fechamento .total-row td { border-top: 2px solid #374151; padding-top: 8px; }
+
+/* Botão perigo */
+.botao-perigo { background: #dc2626 !important; color: white !important; }
+.botao-perigo:hover { background: #b91c1c !important; }
+
+/* Alerta de perigo (vencidos) */
+.alerta-box.alerta-perigo { background: #fee2e2; border-left: 4px solid #dc2626; color: #991b1b; }
+.texto-perigo { color: #dc2626; font-weight: 600; }
+
+/* Consulta de preços */
+.consulta-resultado {
+  margin-top: 1.5rem;
+  padding: 2rem;
+  text-align: center;
+  border: 2px solid #d1fae5;
+}
+.consulta-nome {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+.consulta-preco {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #065f46;
+  margin-bottom: 1rem;
+}
+.consulta-unidade {
+  font-size: 1.2rem;
+  font-weight: 400;
+  color: #6b7280;
+}
+.consulta-detalhes {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+/* Card "Vencendo em 30 dias" (Início) */
+.lista-validade {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 1rem;
+}
+.lista-validade li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.45rem 0.6rem;
+  margin-bottom: 0.35rem;
+  border-left: 4px solid transparent;
+  border-radius: 6px;
+  font-size: 0.92rem;
+}
+.validade-nome { font-weight: 600; }
+.validade-data {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.validade-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.validade-urgente {
+  background: #fef2f2;
+  border-left-color: #dc2626 !important;
+  color: #991b1b;
+}
+.validade-atencao {
+  background: #fffbeb;
+  border-left-color: #d97706 !important;
+  color: #92400e;
+}

@@ -12,6 +12,19 @@ type Produto = {
   codigo_interno?: string;
 };
 
+// Mesma regra do back-end: ignora espaços extras e diferença de maiúsculas/minúsculas,
+// para que "Frios", "frios" e "Frios " apareçam como uma única categoria.
+const chaveCategoria = (cat?: string | null) =>
+  (cat || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('pt-BR') || 'sem categoria';
+
+const rotuloCategoria = (cat?: string | null) => {
+  const chave = chaveCategoria(cat);
+  return chave.charAt(0).toLocaleUpperCase('pt-BR') + chave.slice(1);
+};
+
+const formatarMoeda = (valor: number) =>
+  Number(valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
 type ItemCarrinho = {
   produto: Produto;
   quantidade?: number;
@@ -38,7 +51,9 @@ export const PDV: React.FC = () => {
   useEffect(() => {
     listarProdutosPdv().then((res) => {
       setProdutos(res);
-      const cats = Array.from(new Set(res.map((p: Produto) => p.categoria))) as string[];
+      const cats = (Array.from(new Set(res.map((p: Produto) => chaveCategoria(p.categoria)))) as string[]).sort(
+        (a, b) => a.localeCompare(b, 'pt-BR'),
+      );
       setCategorias(cats);
       if (cats.length) setCategoriaSelecionada(cats[0]);
     });
@@ -95,8 +110,23 @@ export const PDV: React.FC = () => {
     const quantidade = Number(quantidadeInformada.replace(',', '.'));
     if (!quantidade || quantidade <= 0) return;
 
-    const subtotal = Number((Number(produtoPesando.preco) * quantidade).toFixed(2));
-    setCarrinho((prev) => [...prev, { produto: produtoPesando, peso: quantidade, subtotal }]);
+    const produto = produtoPesando;
+    // Pesar de novo o mesmo produto soma na linha existente (ex.: 0,5 kg + 1 kg = 1,5 kg).
+    setCarrinho((prev) => {
+      const idx = prev.findIndex((item) => item.produto.id === produto.id && item.peso !== undefined);
+      if (idx >= 0) {
+        const atualizado = [...prev];
+        const novoPeso = Number(((atualizado[idx].peso || 0) + quantidade).toFixed(3));
+        atualizado[idx] = {
+          ...atualizado[idx],
+          peso: novoPeso,
+          subtotal: Number((novoPeso * Number(produto.preco)).toFixed(2)),
+        };
+        return atualizado;
+      }
+      const subtotal = Number((Number(produto.preco) * quantidade).toFixed(2));
+      return [...prev, { produto, peso: quantidade, subtotal }];
+    });
     setProdutoPesando(null);
     setQuantidadeInformada('');
     setBusca('');
@@ -162,7 +192,7 @@ export const PDV: React.FC = () => {
           p.nome.toLowerCase().includes(buscaNormalizada) ||
           (p.codigo_interno || '').toLowerCase().includes(buscaNormalizada),
       )
-    : produtos.filter((p) => p.categoria === categoriaSelecionada);
+    : produtos.filter((p) => chaveCategoria(p.categoria) === categoriaSelecionada);
 
   return (
     <div className="pdv-container">
@@ -198,7 +228,7 @@ export const PDV: React.FC = () => {
                 setCategoriaSelecionada(cat);
               }}
             >
-              {cat}
+              {rotuloCategoria(cat)}
             </button>
           ))}
         </aside>
@@ -211,7 +241,7 @@ export const PDV: React.FC = () => {
               <button key={produto.id} className="produto-btn" onClick={() => adicionarProduto(produto)}>
                 <span>{produto.nome}</span>
                 <span>
-                  R$ {Number(produto.preco).toFixed(2)} / {produto.unidade}
+                  {formatarMoeda(Number(produto.preco))} / {produto.unidade}
                 </span>
               </button>
             ))
@@ -236,16 +266,16 @@ export const PDV: React.FC = () => {
                 </span>
               ) : (
                 <span>
-                  {item.peso} {item.produto.unidade}
+                  {item.peso?.toLocaleString('pt-BR')} {item.produto.unidade}
                 </span>
               )}
-              <span>R$ {item.subtotal.toFixed(2)}</span>
+              <span>{formatarMoeda(item.subtotal)}</span>
               <button className="carrinho-remover" onClick={() => removerItem(idx)} aria-label="Remover">
                 ×
               </button>
             </div>
           ))}
-          <div className="carrinho-total">Total: R$ {total.toFixed(2)}</div>
+          <div className="carrinho-total">Total: {formatarMoeda(total)}</div>
           {finalizando && <p className="pdv-processando">Processando venda...</p>}
           <div className="pdv-pagamento">
             <button onClick={() => finalizarVenda('DINHEIRO')} disabled={carrinho.length === 0 || finalizando}>

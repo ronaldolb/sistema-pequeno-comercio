@@ -43,4 +43,19 @@ export class FinanceiroController {
   registrarMovimentoCaixa(@Body() dto: CreateMovimentoCaixaDto, @Req() req: any) {
     return this.financeiroService.registrarMovimentoCaixa(dto, req.user?.id);
   }
+
+  @Get('caixa/status')
+statusCaixa() {
+  return this.financeiroService.statusCaixa();
+}
+
+@Post('caixa/abrir')
+abrirCaixa(@Body() body: { fundo_caixa: number; observacao?: string }, @Req() req: any) {
+  return this.financeiroService.abrirCaixa(body.fundo_caixa, body.observacao, req.user?.id);
+}
+
+@Post('caixa/fechar')
+fecharCaixa(@Body() body: { observacao?: string }, @Req() req: any) {
+  return this.financeiroService.fecharCaixa(body.observacao, req.user?.id);
+}
 }

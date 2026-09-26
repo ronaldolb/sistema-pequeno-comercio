@@ -12,6 +12,7 @@ import { Estoque } from './pages/Estoque/Estoque';
 import { Financeiro } from './pages/Financeiro/Financeiro';
 import { Relatorios } from './pages/Relatorios/Relatorios';
 import { Config } from './pages/Config/Config';
+import { Consulta } from './pages/Consulta/Consulta';
 
 export const App: React.FC = () => {
   return (
@@ -30,6 +31,7 @@ export const App: React.FC = () => {
           >
             <Route path="/" element={<Home />} />
             <Route path="/pdv" element={<PDV />} />
+            <Route path="/consulta" element={<Consulta />} />
             <Route path="/produtos" element={<Produtos />} />
             <Route
               path="/estoque"

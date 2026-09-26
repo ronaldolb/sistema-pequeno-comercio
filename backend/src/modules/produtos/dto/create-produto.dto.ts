@@ -1,4 +1,4 @@
-import { IsBoolean, IsIn, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { IsBoolean, IsIn, IsInt, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class CreateProdutoDto {
   @IsString()
@@ -39,4 +39,13 @@ export class CreateProdutoDto {
   @IsOptional()
   @IsString()
   observacoes?: string;
+
+  @IsOptional()
+  @IsString()
+  data_validade?: string | null;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  dias_alerta_vencimento?: number;
 }

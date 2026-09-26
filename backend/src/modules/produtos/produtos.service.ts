@@ -5,6 +5,14 @@ import { Produto } from './produto.entity';
 import { CreateProdutoDto } from './dto/create-produto.dto';
 import { UpdateProdutoDto } from './dto/update-produto.dto';
 
+// Padroniza a categoria para evitar duplicatas como "Frios", "frios" e "Frios ".
+// Remove espaços extras e deixa só a primeira letra maiúscula.
+export function normalizarCategoria(categoria?: string | null): string {
+  const limpa = (categoria || '').trim().replace(/\s+/g, ' ');
+  if (!limpa) return 'Sem categoria';
+  return limpa.charAt(0).toLocaleUpperCase('pt-BR') + limpa.slice(1).toLocaleLowerCase('pt-BR');
+}
+
 @Injectable()
 export class ProdutosService {
   constructor(
@@ -37,13 +45,14 @@ export class ProdutosService {
   }
 
   criar(dto: CreateProdutoDto): Promise<Produto> {
-    const produto = this.produtosRepo.create(dto);
+    const produto = this.produtosRepo.create({ ...dto, categoria: normalizarCategoria(dto.categoria) });
     return this.produtosRepo.save(produto);
   }
 
   async atualizar(id: number, dto: UpdateProdutoDto): Promise<Produto> {
     const produto = await this.buscarPorId(id);
     Object.assign(produto, dto);
+    if (dto.categoria !== undefined) produto.categoria = normalizarCategoria(dto.categoria);
     return this.produtosRepo.save(produto);
   }
 
@@ -53,4 +62,19 @@ export class ProdutosService {
     produto.ativo = false;
     await this.produtosRepo.save(produto);
   }
+
+  listarVencendo(dias: number): Promise<Produto[]> {
+  const hoje = new Date().toISOString().slice(0, 10);
+  const limite = new Date();
+  limite.setDate(limite.getDate() + dias);
+  const dataLimite = limite.toISOString().slice(0, 10);
+
+  return this.produtosRepo
+    .createQueryBuilder('produto')
+    .where('produto.ativo = :ativo', { ativo: true })
+    .andWhere('produto.data_validade IS NOT NULL')
+    .andWhere('produto.data_validade <= :limite', { limite: dataLimite })
+    .orderBy('produto.data_validade', 'ASC')
+    .getMany();
+}
 }
